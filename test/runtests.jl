@@ -1,6 +1,15 @@
 using MinHash
+using DataStructures
 using Test
 
-@testset "MinHash.jl" begin
-    # Write your own tests here.
+@testset "HashSet" begin
+    include("hashset.jl")
+end
+
+@testset "MinHashing" begin
+    include("minhashing.jl")
+end
+
+@testset "Distance" begin
+    include("distance.jl")
 end
