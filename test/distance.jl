@@ -23,9 +23,21 @@ end
     test_pairwise(hash, 1:100, 'A':'z', 40)
     test_pairwise(hash, 1:100, 'A':'z', 1)
     test_pairwise(hash, 'A':'g', 'W':'s', 10)
+
+    @test sketch(hash, 500:600, 50) == sketch(500:600, 60)
+    @test sketch(hash, 'A':'z', 40) == sketch('A':'z', 40)
 end
 
 @testset "Multi" begin
     xs = [collect(Set(rand(1:250, 100))) for i in 1:5]
     test_multi(hash, xs, 50)
+end
+
+@testset "Misc" begin
+    s = sketch('A':'z', 38)
+    @test length(s) == 38
+    s = sketch(5:55, 250)
+    @test length(s) == 51
+    @test !isempty!(s)
+    @test isempty(sketch(hash, 1:0, 100))
 end
