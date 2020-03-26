@@ -1,4 +1,4 @@
-function intersections(x::MinHashSketch, y::MinHashSketch)
+function intersectionlength(x::MinHashSketch, y::MinHashSketch)
     xi, yi = 1, 1
     n = 0
     @inbounds while (xi ≤ length(x.hashes)) & (yi ≤ length(y.hashes))
@@ -10,8 +10,8 @@ function intersections(x::MinHashSketch, y::MinHashSketch)
     return n
 end
 
-function distheap(sketches::MinHashSketch)
-    heap = MutableBinaryMinHeap{Tuple{UInt, Int}}()
+function init_counters(sketches::AbstractVector{MinHashSketch})
+    heap = BinaryMinHeap{Tuple{UInt, Int}}()
     counts = counter(UInt)
     for (n, sketch) in enumerate(sketches)
         if !isempty(sketch.hashes)
@@ -37,25 +37,24 @@ end
 # Pop smallest element from heap. If the source sketch have
 # more hashes, updates counter and heap with new hash
 function popheap!(heap, counts, sketches, indices)
-    ((smallest, sketchno), handle) = top_with_handle(heap)
+    (smallest, sketchno) = pop!(heap)
     @inbounds hashes = sketches[sketchno].hashes
     @inbounds newindex = indices[sketchno] + 1
     @inbounds indices[sketchno] = newindex
     @inbounds if newindex ≤ length(hashes)
         h = hashes[newindex]
+
         # We can add a new value without fear that it will be popped
         # in the same round since the new value is guaranteed to be larger
-        DataStructures.update!(heap, handle, (h, sketchno))
+        push!(heap, (h, sketchno))
         inc!(counts, h)
-    else
-        pop!(heap)
     end
     return (smallest, sketchno)
 end
 
-# This function scales better than O(N^2), that's why it's so complicated
-function intersections(sketches::MinHashSketch)
-    heap, counts = distheap(sketches)
+# This function scales better than O(N^2 * S), that's why it's so complicated
+function intersectionlength(sketches::AbstractVector{MinHashSketch})
+    heap, counts = init_counters(sketches)
     indices = fill(1, length(sketches))
     smallest_ids = Vector{Int}(undef, length(sketches))
     matrix = zeros(Int, (length(sketches), length(sketches)))

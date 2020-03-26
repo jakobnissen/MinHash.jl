@@ -4,7 +4,8 @@ mutable struct HashSet
     len::Int
 
     function HashSet(N::Integer)
-        len = nextpow(2, N)
+        # Min 8 otherwise a size 4 will never repopulate and get stuck
+        len = max(8, nextpow(2, N))
         new(zeros(UInt, len), (len - 1) % UInt, 0)
     end
 end

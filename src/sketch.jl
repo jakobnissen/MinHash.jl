@@ -1,9 +1,9 @@
-mutable struct MinHasher
+mutable struct MinHasher{F}
     filled::Int
     heap::BinaryMaxHeap{UInt64}
     set::HashSet
 
-    function MinHasher(size::Integer)
+    function MinHasher{F}(size::Integer) where F
         heap = BinaryMaxHeap{UInt64}()
         resize!(heap.valtree, size)
         set = HashSet(4*size)
@@ -11,17 +11,20 @@ mutable struct MinHasher
     end
 end
 
+MinHasher(size::Integer) = MinHasher{hash}(size)
+call(::MinHasher{F}, x) where F = F(x)
+
 function Base.show(io::IO, ::MIME"text/plain", s::MinHasher)
     print(io, typeof(s), ":\n")
-    print(io, " hashes:  ", s.filled, " / ", length(s), '\n')
+    print(io, " hashes:  ", s.filled, " / ", _length(s), '\n')
     heaptop = isinitialized(s) ? repr(top(s.heap)) : "< uninitialized >"
     print(io, " minhash: ", heaptop, '\n')
     print(io, " hashset: ", s.set)
 end
 
-Base.length(s::MinHasher) = length(s.heap)
+_length(s::MinHasher) = length(s.heap)
 Base.show(io::IO, s::MinHasher) = print(io, typeof(s), "()")
-isinitialized(s::MinHasher) = length(s) == s.filled
+isinitialized(s::MinHasher) = _length(s) == s.filled
 
 function Base.empty!(x::MinHasher)
     x.filled = 0
@@ -30,12 +33,12 @@ function Base.empty!(x::MinHasher)
 end
 
 function initialize!(s::MinHasher, it)
-    len, filled = length(s), s.filled
+    len, filled = _length(s), s.filled
     vec, set = s.heap.valtree, s.set
     itval = iterate(it)
     @inbounds while (itval !== nothing) & (len > filled)
         i, state = itval
-        h = hash(i)
+        h = call(s, i)
         if !(h in set)
             filled += 1
             vec[filled] = h
@@ -58,11 +61,12 @@ function continue!(s::MinHasher, it, itval)
     largest = top(heap)
     while itval !== nothing
         i, state = itval
-        h = hash(i)
+        h = call(s, i)
         if h < largest && !(h in set)
             push!(set, h, heap)
-            largest = pop!(heap)
+            pop!(heap)
             push!(heap, h)
+            largest = top(heap)
         end
         itval = iterate(it, state)
     end
@@ -75,11 +79,14 @@ function update!(s::MinHasher, it)
 end
 
 struct MinHashSketch
+    func::Function
     requested::Int
     hashes::Vector{UInt64}
 end
 
-MinHashSketch(s::MinHasher) = MinHashSketch(length(s), sort!(s.heap.valtree[1:s.filled]))
+function MinHashSketch(s::MinHasher{F}) where F
+    return MinHashSketch(F, _length(s), sort!(s.heap.valtree[1:s.filled]))
+end
 
 Base.length(s::MinHashSketch) = length(s.hashes)
 Base.isempty(s::MinHashSketch) = iszero(length(s))
@@ -92,9 +99,10 @@ end
 
 Base.show(io::IO, s::MinHashSketch) = print(io, typeof(s), "()")
 
-function sketch(it, s::Integer)
-    sk = MinHasher(s)
+function sketch(F, it, s::Integer)
+    sk = MinHasher{F}(s)
     update!(sk, it)
     sketch = MinHashSketch(sk)
     return sketch
 end
+sketch(it, s::Integer) = sketch(hash, it, s)

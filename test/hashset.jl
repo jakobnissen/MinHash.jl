@@ -43,6 +43,17 @@ end
     MinHash.repopulate!(s, heap)
     test_membership(s, keep, integers)
     @test length(s) == length(keep)
+
+    # Here, test the second if statement in push!
+    s = MinHash.HashSet(1000)
+    for i in UInt(1):UInt(500)
+        MinHash.unsafe_push!(s, i)
+    end
+    heap = BinaryMaxHeap{UInt}()
+    for i in UInt(501):UInt(1000)
+        push!(heap, i)
+        push!(s, i, heap)
+    end
 end
 
 @testset "Pushing" begin

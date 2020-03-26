@@ -11,6 +11,6 @@ export MinHasher,
 update!,
 MinHashSketch,
 sketch,
-intersections
+intersectionlength
 
 end # module
