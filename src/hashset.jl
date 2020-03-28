@@ -33,9 +33,9 @@ function Base.empty!(s::HashSet)
     return s
 end
 
-function repopulate!(s::HashSet, h::BinaryMaxHeap{UInt})
+function repopulate!(s::HashSet, h::Vector{UInt})
     empty!(s)
-    @inbounds for i in h.valtree
+    @inbounds for i in h
         unsafe_push!(s, i)
     end
     s.len = length(h)
@@ -52,7 +52,7 @@ function unsafe_push!(s::HashSet, h::UInt)
     @inbounds s.data[pos] = h
 end
 
-function Base.push!(s::HashSet, h::UInt, heap::BinaryMaxHeap{UInt})
+function Base.push!(s::HashSet, h::UInt, heap::Vector{UInt})
     if s.len > (s.mask - s.mask >>> 2)
         repopulate!(s, heap)
         # h may have been in the heap already

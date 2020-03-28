@@ -35,7 +35,7 @@ end
     rnge = UInt(1):UInt(1000)
     integers = collect(Set(rand(rnge, 400)))
     keep = Set(integers[1:100])
-    heap = BinaryMaxHeap{UInt}(collect(keep))
+    heap = heapify!(collect(keep), Base.Order.Reverse)
     s = MinHash.HashSet(1000)
     for i in integers
         MinHash.unsafe_push!(s, i)
@@ -49,21 +49,21 @@ end
     for i in UInt(1):UInt(500)
         MinHash.unsafe_push!(s, i)
     end
-    heap = BinaryMaxHeap{UInt}()
+    heap = UInt[]
     for i in UInt(501):UInt(1000)
-        push!(heap, i)
+        heappush!(heap, i, Base.Order.Reverse)
         push!(s, i, heap)
     end
 end
 
 @testset "Pushing" begin
     s = MinHash.HashSet(50)
-    heap = BinaryMaxHeap{UInt}(rand(UInt, 25))
+    heap = heapify!(rand(UInt, 25), Base.Order.Reverse)
     for i in 1:1000
         largest = pop!(heap)
         smaller = largest - 10
-        push!(heap, smaller)
+        heappush!(heap, smaller, Base.Order.Reverse)
         push!(s, smaller, heap)
     end
-    @test all(i in s for i in heap.valtree)
+    @test all(i in s for i in heap)
 end

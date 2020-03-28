@@ -1,11 +1,10 @@
 mutable struct MinHasher{F}
     filled::Int
-    heap::BinaryMaxHeap{UInt64}
+    heap::Vector{UInt64}
     set::HashSet
 
     function MinHasher{F}(size::Integer) where F
-        heap = BinaryMaxHeap{UInt64}()
-        resize!(heap.valtree, size)
+        heap = Vector{UInt64}(undef, size)
         set = HashSet(4*size)
         new(0, heap, set)
     end
@@ -17,7 +16,7 @@ call(::MinHasher{F}, x) where F = F(x)
 function Base.show(io::IO, ::MIME"text/plain", s::MinHasher)
     print(io, typeof(s), ":\n")
     print(io, " hashes:  ", s.filled, " / ", _length(s), '\n')
-    heaptop = isinitialized(s) ? repr(top(s.heap)) : "< uninitialized >"
+    heaptop = isinitialized(s) ? repr(first(s.heap)) : "< uninitialized >"
     print(io, " minhash: ", heaptop, '\n')
     print(io, " hashset: ", s.set)
 end
@@ -34,7 +33,7 @@ end
 
 function initialize!(s::MinHasher, it)
     len, filled = _length(s), s.filled
-    vec, set = s.heap.valtree, s.set
+    vec, set = s.heap, s.set
     itval = iterate(it)
     @inbounds while (itval !== nothing) & (len > filled)
         i, state = itval
@@ -47,10 +46,7 @@ function initialize!(s::MinHasher, it)
         itval = iterate(it, state)
     end
     if !isinitialized(s) && (filled == len)
-        # This loop gives the heap actual heap property.
-        for i in 2:length(vec)
-            DataStructures._heap_bubble_up!(s.heap.comparer, vec, i)
-        end
+        heapify!(vec, Base.Order.Reverse)
     end
     s.filled = filled
     return itval
@@ -58,15 +54,15 @@ end
 
 function continue!(s::MinHasher, it, itval)
     heap, set = s.heap, s.set
-    largest = top(heap)
+    largest = first(heap)
     while itval !== nothing
         i, state = itval
         h = call(s, i)
         if h < largest && !(h in set)
             push!(set, h, heap)
-            pop!(heap)
-            push!(heap, h)
-            largest = top(heap)
+            heappop!(heap, Base.Order.Reverse)
+            heappush!(heap, h, Base.Order.Reverse)
+            largest = first(heap)
         end
         itval = iterate(it, state)
     end
@@ -85,7 +81,7 @@ struct MinHashSketch
 end
 
 function MinHashSketch(s::MinHasher{F}) where F
-    return MinHashSketch(F, _length(s), sort!(s.heap.valtree[1:s.filled]))
+    return MinHashSketch(F, _length(s), sort!(s.heap[1:s.filled]))
 end
 
 Base.length(s::MinHashSketch) = length(s.hashes)
