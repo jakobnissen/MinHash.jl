@@ -7,7 +7,6 @@ end
 function test_multi(F::Function, x, s)
     sketches = [sketch(F, i, s) for i in x]
     m = intersectionlength(sketches)
-    println(m)
     allgood = true
     for i in 1:length(sketches) - 1
         for j in i+1:length(sketches)
@@ -23,9 +22,6 @@ end
     test_pairwise(hash, 1:100, 'A':'z', 40)
     test_pairwise(hash, 1:100, 'A':'z', 1)
     test_pairwise(hash, 'A':'g', 'W':'s', 10)
-
-    @test sketch(hash, 500:600, 50) == sketch(500:600, 60)
-    @test sketch(hash, 'A':'z', 40) == sketch('A':'z', 40)
 end
 
 @testset "Multi" begin
@@ -38,6 +34,6 @@ end
     @test length(s) == 38
     s = sketch(5:55, 250)
     @test length(s) == 51
-    @test !isempty!(s)
+    @test !isempty(s)
     @test isempty(sketch(hash, 1:0, 100))
 end
