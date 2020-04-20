@@ -1,6 +1,6 @@
 # MinHash.jl
 
-```@index
+```@indexwhi
 ```
 
 ```@autodocs

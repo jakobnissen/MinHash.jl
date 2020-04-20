@@ -1,3 +1,14 @@
+# A MinHasher maintains the N smallest hashes by continually removing the top hash
+# using a heap. To make sure we don't have the same hashes multiple times, we use a
+# HashSet to check for duplicates. A Hash set is like an optimized version of Set.
+
+# F is type parameter because we want the user to choose a hash function with no
+# runtime performance. The maximal number of hashes kept is the length of the heap vector.
+"""
+    MinHasher{F}
+    
+A type used to minhash any iterable object. See `update!`
+"""
 mutable struct MinHasher{F}
     filled::Int
     heap::Vector{UInt64}
@@ -31,6 +42,9 @@ function Base.empty!(x::MinHasher)
     return x
 end
 
+# The first N hashes will always be the N smallest hashes. So we don't need to use the heap
+# to remove largest hash. We only use the HashSet (and we don't even need to repopulate
+# that). We build the heap after seeing all N distinct hashes.
 function initialize!(s::MinHasher, it)
     len, filled = _length(s), s.filled
     vec, set = s.heap, s.set
@@ -52,6 +66,8 @@ function initialize!(s::MinHasher, it)
     return itval
 end
 
+# After the first N hashes, we need to use the heap to discard the largest hash when we
+# see a smaller one.
 function continue!(s::MinHasher, it, itval)
     heap, set = s.heap, s.set
     largest = first(heap)
@@ -68,15 +84,25 @@ function continue!(s::MinHasher, it, itval)
     end
 end
 
+"""
+    update!(s::MinHasher, it)
+    
+Add hashes of all elements of iterable `it` to MinHasher `s`.
+"""
 function update!(s::MinHasher, it)
     itval = initialize!(s, it)
     continue!(s, it, itval)
     return s
 end
 
+"""
+    MinHashSetch
+    
+Used to hold the N smallest hashes of an iterable.
+"""
 struct MinHashSketch
-    func::Function
-    requested::Int
+    func::Function # hash function
+    requested::Int # maximal number of hashes to keep
     hashes::Vector{UInt64}
 end
 

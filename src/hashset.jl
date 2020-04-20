@@ -16,6 +16,8 @@ end
 
 Base.length(s::HashSet) = s.len
 
+# Hashes are already uniformly distributed, so we just use hash as index then search
+# linearly until we find the hash or an empty slot (0 is empty)
 function Base.in(h::UInt, s::HashSet)
     pos = (h & s.mask) + 1
     @inbounds v = s.data[pos]
@@ -33,6 +35,8 @@ function Base.empty!(s::HashSet)
     return s
 end
 
+# This simple structure do not support deletion, so when it gets too full, we simply
+# empty it and then repopulate it from a vector containing all the hashes we need
 function repopulate!(s::HashSet, h::Vector{UInt})
     empty!(s)
     @inbounds for i in h
