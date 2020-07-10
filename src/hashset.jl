@@ -2,11 +2,12 @@ mutable struct HashSet
     data::Vector{UInt}
     mask::UInt
     len::Int
+    haszero::Bool # 0 is interpreted as absence of hash, so we need this
 
     function HashSet(N::Integer)
         # Min 8 otherwise a size 4 will never repopulate and get stuck
         len = max(8, nextpow(2, N))
-        new(zeros(UInt, len), (len - 1) % UInt, 0)
+        new(zeros(UInt, len), (len - 1) % UInt, 0, false)
     end
 end
 
@@ -26,12 +27,13 @@ function Base.in(h::UInt, s::HashSet)
         pos = (pos & s.mask) + 1
         v = s.data[pos]
     end
-    return false
+    return iszero(h) & s.haszero
 end
 
 function Base.empty!(s::HashSet)
     fill!(s.data, 0)
     s.len = 0
+    s.haszero = false
     return s
 end
 
@@ -46,6 +48,7 @@ function repopulate!(s::HashSet, h::Vector{UInt})
 end
 
 function unsafe_push!(s::HashSet, h::UInt)
+    s.haszero |= iszero(h)
     pos = (h & s.mask) + 1
     @inbounds v = s.data[pos]
     @inbounds while !iszero(v)
@@ -56,14 +59,9 @@ function unsafe_push!(s::HashSet, h::UInt)
     @inbounds s.data[pos] = h
 end
 
+# The HashSet doesn't actually check if the hash is already in the set or not
+# it just adds it - so only push when item is not already in set.
 function Base.push!(s::HashSet, h::UInt, heap::Vector{UInt})
-    if s.len > (s.mask - s.mask >>> 2)
-        repopulate!(s, heap)
-        # h may have been in the heap already
-        if !(h in s)
-            unsafe_push!(s, h)
-        end
-    else
-        unsafe_push!(s, h)
-    end
+    s.len > (s.mask - s.mask >>> 2) && repopulate!(s, heap)
+    unsafe_push!(s, h)
 end

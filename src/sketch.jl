@@ -6,7 +6,7 @@
 # runtime performance. The maximal number of hashes kept is the length of the heap vector.
 """
     MinHasher{F}
-    
+
 A type used to minhash any iterable object. See `update!`
 """
 mutable struct MinHasher{F}
@@ -28,7 +28,7 @@ function Base.show(io::IO, ::MIME"text/plain", s::MinHasher)
     print(io, typeof(s), ":\n")
     print(io, " hashes:  ", s.filled, " / ", _length(s), '\n')
     heaptop = isinitialized(s) ? repr(first(s.heap)) : "< uninitialized >"
-    print(io, " minhash: ", heaptop, '\n')
+    print(io, " maxhash: ", heaptop, '\n')
     print(io, " hashset: ", s.set)
 end
 
@@ -86,7 +86,7 @@ end
 
 """
     update!(s::MinHasher, it)
-    
+
 Add hashes of all elements of iterable `it` to MinHasher `s`.
 """
 function update!(s::MinHasher, it)
@@ -97,7 +97,7 @@ end
 
 """
     MinHashSetch
-    
+
 Used to hold the N smallest hashes of an iterable.
 """
 struct MinHashSketch
