@@ -1,6 +1,7 @@
 # MinHash
 
-[![Build Status](https://travis-ci.com/jakobnissen/MinHash.jl.svg?branch=master)](https://travis-ci.com/jakobnissen/MinHash.jl)
+[![Dev](https://img.shields.io/badge/docs-dev-blue.svg)](https://jakobnissen.github.io/MinHash.jl/dev)
+![CI](https://github.com/jakobnissen/MinHash.jl/workflows/CI/badge.svg)
 [![Codecov](https://codecov.io/gh/jakobnissen/MinHash.jl/branch/master/graph/badge.svg)](https://codecov.io/gh/jakobnissen/MinHash.jl)
 
 _Efficient minhashing in Julia_
