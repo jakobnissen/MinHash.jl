@@ -15,5 +15,5 @@ makedocs(;
 )
 
 deploydocs(;
-    repo="github.com/jakobnissen/MinHash.jl",
+    repo="github.com/jakobnissen/MinHash.jl.git",
 )
