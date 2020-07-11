@@ -1,5 +1,7 @@
 using Documenter, MinHash
 
+DocMeta.setdocmeta!(MinHash, :DocTestSetup, :(using MinHash); recursive=true)
+
 makedocs(;
     modules=[MinHash],
     format=Documenter.HTML(),

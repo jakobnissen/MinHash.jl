@@ -1,3 +1,12 @@
+"""
+    HashSet(N::Integer)
+
+Construct a `HashSet` with at least `N` slots. A `HashSet` contains `UInt` hash
+values and is optimized for quick inserts and membership test.
+
+A `HashSet` is a completely unsafe type internal type, not to be used unless
+you know what you are doing.
+"""
 mutable struct HashSet
     data::Vector{UInt}
     mask::UInt

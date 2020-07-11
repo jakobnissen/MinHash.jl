@@ -7,7 +7,9 @@
 """
     MinHasher{F}
 
-A type used to minhash any iterable object. See `update!`
+A type used to minhash any iterable object with function `F`.
+
+See also: [`update!`](@ref), [`sketch`](@ref)
 """
 mutable struct MinHasher{F}
     filled::Int
@@ -88,6 +90,8 @@ end
     update!(s::MinHasher, it)
 
 Add hashes of all elements of iterable `it` to MinHasher `s`.
+
+See also: [`sketch`](@ref)
 """
 function update!(s::MinHasher, it)
     itval = initialize!(s, it)
@@ -96,12 +100,24 @@ function update!(s::MinHasher, it)
 end
 
 """
-    MinHashSetch
+    MinHashSketch
 
-Used to hold the N smallest hashes of an iterable.
+Holds the N smallest hashes of an iterable. Construct from a `MinHasher`.
+
+# Examples
+
+```jldoctest
+julia> x = MinHashSketch(update!(MinHasher(10), 1:1000))
+MinHashSketch:
+ hashes:  10 / 10
+ maxhash: 0x0214ce7a1c004d40
+
+julia> length(x)
+10
+```
 """
 struct MinHashSketch
-    func::Function # hash function
+    func::Any # hash function
     requested::Int # maximal number of hashes to keep
     hashes::Vector{UInt64}
 end
@@ -116,11 +132,28 @@ Base.isempty(s::MinHashSketch) = iszero(length(s))
 function Base.show(io::IO, ::MIME"text/plain", s::MinHashSketch)
     print(io, typeof(s), ":\n")
     print(io, " hashes:  ", length(s.hashes), " / ", s.requested, '\n')
-    print(io, " minhash: ", isempty(s) ? "" : repr(s.hashes[1]))
+    print(io, " maxhash: ", isempty(s) ? "" : repr(s.hashes[end]))
 end
 
 Base.show(io::IO, s::MinHashSketch) = print(io, typeof(s), "()")
 
+"""
+    sketch([F=hash], it, s::Integer)
+
+Hash every element of iterable `it` using function `F`, and return a `MinHashSketch`
+containing at most the `s` smallest hashes.
+
+# Examples:
+
+```jldoctest
+julia> sketch("ACGDEFG", 3)
+MinHashSketch:
+ hashes:  3 / 3
+ maxhash: 0x3e1b023d3c92ff8f
+```
+
+See also: [`update!`](@ref)
+"""
 function sketch(F, it, s::Integer)
     sk = MinHasher{F}(s)
     update!(sk, it)
