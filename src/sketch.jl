@@ -78,12 +78,19 @@ function continue!(s::MinHasher, it, itval)
         h = call(s, i)
         if h < largest && !(h in set)
             push!(set, h, heap)
-            heappop!(heap, Base.Order.Reverse)
-            heappush!(heap, h, Base.Order.Reverse)
+            setfirst!(heap, h, Base.Order.Reverse)
             largest = first(heap)
         end
         itval = iterate(it, state)
     end
+end
+
+"Replace root node in heap, preserving heap property"
+function setfirst!(h::Vector, v, order::Base.Order.Ordering)
+    val = convert(eltype(h), v)
+    @inbounds h[1] = val
+    DataStructures.percolate_down!(h, 1, val, order, length(h))
+    return h
 end
 
 """
