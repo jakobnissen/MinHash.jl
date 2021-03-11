@@ -66,7 +66,7 @@ end
 
 function test_sketch(F, x, s::Integer)
     truth = sort!([F(i) for i in x])[1:s]
-    @test sketch(F, x, s).hashes == truth
+    @test minhash(F, x, s).hashes == truth
 end
 
 

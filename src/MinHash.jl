@@ -3,13 +3,13 @@ module MinHash
 using DataStructures
 
 include("hashset.jl")
-include("sketch.jl")
+include("minhash.jl")
 include("distance.jl")
 
 export MinHasher,
 update!,
 MinHashSketch,
-sketch,
+minhash,
 intersectionlength
 
 end

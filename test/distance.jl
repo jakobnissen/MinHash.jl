@@ -1,11 +1,11 @@
 function test_pairwise(F::Function, a, b, s::Integer)
-    s1 = sketch(F, a, s)
-    s2 = sketch(F, b, s)
+    s1 = minhash(F, a, s)
+    s2 = minhash(F, b, s)
     @test intersectionlength(s1, s2) == length(intersect(s1.hashes, s2.hashes))
 end
 
 function test_multi(F::Function, x, s)
-    sketches = [sketch(F, i, s) for i in x]
+    sketches = [minhash(F, i, s) for i in x]
     m = intersectionlength(sketches)
     allgood = true
     for i in 1:length(sketches) - 1
@@ -30,10 +30,10 @@ end
 end
 
 @testset "Misc" begin
-    s = sketch('A':'z', 38)
+    s = minhash('A':'z', 38)
     @test length(s) == 38
-    s = sketch(5:55, 250)
+    s = minhash(5:55, 250)
     @test length(s) == 51
     @test !isempty(s)
-    @test isempty(sketch(hash, 1:0, 100))
+    @test isempty(minhash(hash, 1:0, 100))
 end

@@ -24,7 +24,7 @@ __`update!(::MinHasher, it)`__
 
 Iterate over `it`, adding each element to the minhasher.
 
-__`sketch(F, it, s::Integer)`__
+__`minhash(F, it, s::Integer)`__
 Hash all elements of `it` using function `F`, storing at most the `s` smallest hashes. Equivalent to:
 ```
 hasher = MinHasher{F}(s)
@@ -32,9 +32,9 @@ update!(hasher, it)
 return MinHashSketch(hasher)
 ```
 
-__`sketch(it, s::Integer)`__
+__`minhash(it, s::Integer)`__
 
-Same as `sketch(Base.hash, it, s)`
+Same as `minhash(Base.hash, it, s)`
 
 __`intersectionlength(a::MinHashSketch, b::MinHashSketch)`__
 

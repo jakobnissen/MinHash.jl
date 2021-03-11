@@ -7,7 +7,7 @@ set operations.
 # Examples
 
 ```julia-repl
-julia> x = sketch(1:10000, 100); y = sketch(5000:15000, 100);
+julia> x = minhash(1:10000, 100); y = minhash(5000:15000, 100);
 
 julia> intersectionlength(x, y)
 49

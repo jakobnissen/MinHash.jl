@@ -9,7 +9,7 @@
 
 A type used to minhash any iterable object with function `F`.
 
-See also: [`update!`](@ref), [`sketch`](@ref)
+See also: [`update!`](@ref), [`minhash`](@ref)
 """
 mutable struct MinHasher{F}
     filled::Int
@@ -98,7 +98,7 @@ end
 
 Add hashes of all elements of iterable `it` to MinHasher `s`.
 
-See also: [`sketch`](@ref)
+See also: [`minhash`](@ref)
 """
 function update!(s::MinHasher, it)
     itval = initialize!(s, it)
@@ -145,7 +145,7 @@ end
 Base.show(io::IO, s::MinHashSketch) = print(io, typeof(s), "()")
 
 """
-    sketch([F=hash], it, s::Integer)
+minhash([F=hash], it, s::Integer)
 
 Hash every element of iterable `it` using function `F`, and return a `MinHashSketch`
 containing at most the `s` smallest hashes.
@@ -153,7 +153,7 @@ containing at most the `s` smallest hashes.
 # Examples:
 
 ```jldoctest
-julia> sketch("ACGDEFG", 3)
+julia> minhash("ACGDEFG", 3)
 MinHashSketch:
  hashes:  3 / 3
  maxhash: 0x3e1b023d3c92ff8f
@@ -161,10 +161,10 @@ MinHashSketch:
 
 See also: [`update!`](@ref)
 """
-function sketch(F, it, s::Integer)
+function minhash(F, it, s::Integer)
     sk = MinHasher{F}(s)
     update!(sk, it)
-    sketch = MinHashSketch(sk)
-    return sketch
+    MinHashSketch(sk)
 end
-sketch(it, s::Integer) = sketch(hash, it, s)
+
+minhash(it, s::Integer) = minhash(hash, it, s)
