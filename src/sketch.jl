@@ -51,7 +51,7 @@ function initialize!(s::MinHasher, it)
     len, filled = _length(s), s.filled
     vec, set = s.heap, s.set
     itval = iterate(it)
-    @inbounds while (itval !== nothing) & (len > filled)
+    @inbounds while (len > filled) && (itval !== nothing)
         i, state = itval
         h = call(s, i)
         if !(h in set)
