@@ -89,7 +89,7 @@ end
 function setfirst!(h::Vector, v, order::Base.Order.Ordering)
     val = convert(eltype(h), v)
     @inbounds h[1] = val
-    DataStructures.percolate_down!(h, 1, val, order, length(h))
+    percolate_down!(h, 1, val, order, length(h))
     return h
 end
 

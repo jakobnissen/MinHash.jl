@@ -1,7 +1,6 @@
 module MinHash
 
-using DataStructures
-
+include("heap.jl")
 include("hashset.jl")
 include("sketch.jl")
 include("distance.jl")

@@ -1,5 +1,5 @@
 using MinHash
-using DataStructures
+using DataStructures: DataStructures
 using Test
 
 @testset "HashSet" begin

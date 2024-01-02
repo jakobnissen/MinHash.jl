@@ -26,13 +26,13 @@ function intersectionlength(x::MinHashSketch, y::MinHashSketch)
 end
 
 function init_counters(sketches::AbstractVector{MinHashSketch})
-    heap = BinaryMinHeap{Tuple{UInt, Int}}()
-    counts = counter(UInt)
+    heap = Tuple{UInt, Int}[]
+    counts = Dict{UInt, Int}()
     for (n, sketch) in enumerate(sketches)
         if !isempty(sketch.hashes)
             h = sketch.hashes[1]
-            push!(heap, (h, n))
-            inc!(counts, h)
+            heappush!(heap, (h, n))
+            counts[h] = get(counts, h, 0) + 1
         end
     end
     return heap, counts
@@ -52,7 +52,7 @@ end
 # Pop smallest element from heap. If the source sketch have
 # more hashes, updates counter and heap with new hash
 function popheap!(heap, counts, sketches, indices)
-    (smallest, sketchno) = pop!(heap)
+    (smallest, sketchno) = heappop!(heap)
     @inbounds hashes = sketches[sketchno].hashes
     @inbounds newindex = indices[sketchno] + 1
     @inbounds indices[sketchno] = newindex
@@ -61,8 +61,8 @@ function popheap!(heap, counts, sketches, indices)
 
         # We can add a new value without fear that it will be popped
         # in the same round since the new value is guaranteed to be larger
-        push!(heap, (h, sketchno))
-        inc!(counts, h)
+        heappush!(heap, (h, sketchno))
+        counts[h] = get(counts, h, 0) + 1
     end
     return (smallest, sketchno)
 end
@@ -98,7 +98,7 @@ function intersectionlength(sketches::AbstractVector{MinHashSketch})
         smallest_ids[1] = sketchno
         # How many other values are equal to smallest value?
         N = counts[smallest]
-        reset!(counts, smallest)
+        pop!(counts, smallest)
         # Increment overlaps for all that are equal
         if N > 1
             for i in 2:N

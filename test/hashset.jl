@@ -35,7 +35,7 @@ end
     rnge = UInt(1):UInt(1000)
     integers = collect(Set(rand(rnge, 400)))
     keep = Set(integers[1:100])
-    heap = heapify!(collect(keep), Base.Order.Reverse)
+    heap = DataStructures.heapify!(collect(keep), Base.Order.Reverse)
     s = MinHash.HashSet(1000)
     for i in integers
         MinHash.unsafe_push!(s, i)
@@ -51,18 +51,18 @@ end
     end
     heap = UInt[]
     for i in UInt(501):UInt(1000)
-        heappush!(heap, i, Base.Order.Reverse)
+        DataStructures.heappush!(heap, i, Base.Order.Reverse)
         push!(s, i, heap)
     end
 end
 
 @testset "Pushing" begin
     s = MinHash.HashSet(50)
-    heap = heapify!(rand(UInt, 25), Base.Order.Reverse)
+    heap = DataStructures.heapify!(rand(UInt, 25), Base.Order.Reverse)
     for i in 1:1000
         largest = pop!(heap)
         smaller = largest - 10
-        heappush!(heap, smaller, Base.Order.Reverse)
+        DataStructures.heappush!(heap, smaller, Base.Order.Reverse)
         push!(s, smaller, heap)
     end
     @test all(i in s for i in heap)
