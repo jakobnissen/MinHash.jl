@@ -25,17 +25,15 @@ function intersectionlength(x::MinHashSketch, y::MinHashSketch)
     return n
 end
 
-function init_counters(sketches::AbstractVector{MinHashSketch})
+function init_heap(sketches::AbstractVector{MinHashSketch})
     heap = Tuple{UInt, Int}[]
-    counts = Dict{UInt, Int}()
     for (n, sketch) in enumerate(sketches)
         if !isempty(sketch.hashes)
             h = sketch.hashes[1]
             push!(heap, (h, n))
-            counts[h] = get(counts, h, 0) + 1
         end
     end
-    return heapify!(heap, Forward), counts
+    return heapify!(heap, Forward)
 end
 
 function increment_matrix!(matrix::Matrix{<:Integer}, indices::Vector{<:Integer}, N::Integer)
@@ -51,7 +49,7 @@ end
 
 # Pop smallest element from heap. If the source sketch have
 # more hashes, updates counter and heap with new hash
-function popheap!(heap, counts, sketches, indices)
+function popheap!(heap, sketches, indices)
     (smallest, sketchno) = @inbounds heap[1]
     @inbounds hashes = sketches[sketchno].hashes
     @inbounds newindex = indices[sketchno] + 1
@@ -62,7 +60,6 @@ function popheap!(heap, counts, sketches, indices)
         # We can add a new value without fear that it will be popped
         # in the same round since the new value is guaranteed to be larger
         heapreplace!(heap, (h, sketchno), Forward)
-        counts[h] = get(counts, h, 0) + 1
     else
         heappop!(heap)
     end
@@ -90,24 +87,20 @@ julia> intersectionlength(v)
 ```
 """
 function intersectionlength(sketches::AbstractVector{MinHashSketch})
-    heap, counts = init_counters(sketches)
+    heap = init_heap(sketches)
     indices = fill(1, length(sketches))
     smallest_ids = Vector{Int}(undef, length(sketches))
     matrix = zeros(Int, (length(sketches), length(sketches)))
-    @inbounds while !isempty(heap)
+    @inbounds while length(heap) > 1
         # Get smallest value
-        smallest, sketchno = popheap!(heap, counts, sketches, indices)
+        smallest, sketchno = popheap!(heap, sketches, indices)
         smallest_ids[1] = sketchno
-        # How many other values are equal to smallest value?
-        N = counts[smallest]
-        pop!(counts, smallest)
-        # Increment overlaps for all that are equal
-        if N > 1
-            for i in 2:N
-                smallest_ids[i] = popheap!(heap, counts, sketches, indices)[2]
-            end
-            increment_matrix!(matrix, smallest_ids, N)
+        i = 1
+        while @inbounds(heap[1])[1] == smallest
+            i += 1
+            @inbounds smallest_ids[i] = popheap!(heap, sketches, indices)[2]
         end
+        i > 1 && increment_matrix!(matrix, smallest_ids, i)
     end
     return matrix
 end
