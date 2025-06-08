@@ -3,49 +3,38 @@
 using Base.Order: Forward, Ordering, lt
 
 # Binary min-heap percolate down.
-function percolate_down!(xs::AbstractArray, i::Integer, x=xs[i], o::Ordering=Forward, len::Integer=length(xs))
+function percolate_down!(by, xs::AbstractArray, i::Integer, x, o::Ordering)
+    len = length(xs)
     @inbounds while (l = 2i) <= len
         r = 2i + 1
-        j = r > len || lt(o, xs[l], xs[r]) ? l : r
-        lt(o, xs[j], x) || break
-        xs[i] = xs[j]
+        j = r > len || lt(o, by(xs[l]), by(xs[r])) ? l : r
+        xj = xs[j]
+        lt(o, by(xj), by(x)) || break
+        xs[i] = xj
         i = j
     end
-    @inbounds xs[i] = x
+    return @inbounds xs[i] = x
 end
 
-percolate_down!(xs::AbstractArray, i::Integer, o::Ordering, len::Integer=length(xs)) = percolate_down!(xs, i, xs[i], o, len)
-
-# Binary min-heap percolate up.
-function percolate_up!(xs::AbstractArray, i::Integer, x=xs[i], o::Ordering=Forward)
-    @inbounds while (j = div(i, 2)) >= 1
-        lt(o, x, xs[j]) || break
-        xs[i] = xs[j]
-        i = j
-    end
-    @inbounds xs[i] = x
-end
-
-@inline percolate_up!(xs::AbstractArray, i::Integer, o::Ordering) = percolate_up!(xs, i, xs[i], o)
-
-function heappop!(xs::AbstractArray)
+function heappop!(by, xs::AbstractArray, o::Ordering)
     x = @inbounds xs[1]
     y = pop!(xs)
     if !isempty(xs)
-        percolate_down!(xs, 1, y, Forward)
+        percolate_down!(by, xs, 1, y, o)
     end
     return x
 end
 
-@inline function heappush!(xs::AbstractArray, x)
-    push!(xs, x)
-    percolate_up!(xs, length(xs), Forward)
-    return xs
+function heapreplace!(by, xs::Vector, x, o::Ordering)
+    res = @inbounds xs[1]
+    @inbounds xs[1] = x
+    percolate_down!(by, xs, 1, x, o)
+    return res
 end
 
-function heapify!(xs::AbstractArray, o::Ordering=Forward)
+function heapify!(by, xs::AbstractArray, o::Ordering)
     for i in div(length(xs), 2):-1:1
-        percolate_down!(xs, i, o)
+        percolate_down!(by, xs, i, @inbounds(xs[i]), o)
     end
     return xs
 end
