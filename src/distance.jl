@@ -31,11 +31,11 @@ function init_counters(sketches::AbstractVector{MinHashSketch})
     for (n, sketch) in enumerate(sketches)
         if !isempty(sketch.hashes)
             h = sketch.hashes[1]
-            heappush!(heap, (h, n))
+            push!(heap, (h, n))
             counts[h] = get(counts, h, 0) + 1
         end
     end
-    return heap, counts
+    return heapify!(heap, Forward), counts
 end
 
 function increment_matrix!(matrix::Matrix{<:Integer}, indices::Vector{<:Integer}, N::Integer)
@@ -52,7 +52,7 @@ end
 # Pop smallest element from heap. If the source sketch have
 # more hashes, updates counter and heap with new hash
 function popheap!(heap, counts, sketches, indices)
-    (smallest, sketchno) = heappop!(heap)
+    (smallest, sketchno) = @inbounds heap[1]
     @inbounds hashes = sketches[sketchno].hashes
     @inbounds newindex = indices[sketchno] + 1
     @inbounds indices[sketchno] = newindex
@@ -61,8 +61,10 @@ function popheap!(heap, counts, sketches, indices)
 
         # We can add a new value without fear that it will be popped
         # in the same round since the new value is guaranteed to be larger
-        heappush!(heap, (h, sketchno))
+        heapreplace!(heap, (h, sketchno), Forward)
         counts[h] = get(counts, h, 0) + 1
+    else
+        heappop!(heap)
     end
     return (smallest, sketchno)
 end
