@@ -62,7 +62,7 @@ function initialize!(s::MinHasher, it)
         itval = iterate(it, state)
     end
     if !isinitialized(s) && (filled == len)
-        heapify!(vec, Base.Order.Reverse)
+        heapify!(identity, vec, Base.Order.Reverse)
     end
     s.filled = filled
     return itval
@@ -78,7 +78,7 @@ function continue!(s::MinHasher, it, itval)
         h = call(s, i)
         if h < largest && !(h in set)
             push!(set, h, heap)
-            heapreplace!(heap, h, Base.Order.Reverse)
+            heapreplace!(identity, heap, h, Base.Order.Reverse)
             largest = first(heap)
         end
         itval = iterate(it, state)

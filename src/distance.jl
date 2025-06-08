@@ -33,7 +33,7 @@ function init_heap(sketches::AbstractVector{MinHashSketch})
             push!(heap, (h, n))
         end
     end
-    return heapify!(heap, Forward)
+    return heapify!(first, heap, Forward)
 end
 
 function increment_matrix!(matrix::Matrix{<:Integer}, indices::Vector{<:Integer}, N::Integer)
@@ -59,9 +59,9 @@ function popheap!(heap, sketches, indices)
 
         # We can add a new value without fear that it will be popped
         # in the same round since the new value is guaranteed to be larger
-        heapreplace!(heap, (h, sketchno), Forward)
+        heapreplace!(first, heap, (h, sketchno), Forward)
     else
-        heappop!(heap)
+        heappop!(first, heap, Forward)
     end
     return (smallest, sketchno)
 end
