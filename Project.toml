@@ -1,7 +1,7 @@
 name = "MinHash"
 uuid = "4b3c9753-2685-44e9-8a29-365b96c023ed"
 authors = ["Jakob Nybo Nissen"]
-version = "0.2.1"
+version = "0.2.2"
 
 [compat]
 julia = "1"
